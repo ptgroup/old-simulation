@@ -80,7 +80,7 @@
 #include "serial.h"
 
 bool serial_on = false; // Whether to enable the serial interface (off by default)
-const int PORT = 9; // Serial COM port - 1 (eg COM8 == 7)
+int port = 9; // Serial COM port - 1 (eg COM8 == 7)
 
 // Simulation variables
 double sim_time = 0.0; // In seconds
@@ -184,6 +184,17 @@ int main(int argc, char **argv) {
     int read = script_readline();
     if (script_cmdequ("serial")) {
         if (!strcmp(script_getarg(0), "on")) {
+            char *port_name = script_getarg(1);
+            if (!port_name) {
+                puts("Must specify a serial port to use serial, aborting");
+                return 1;
+            }
+            int port_temp = get_port(port_name);
+            if (port_temp == -1) {
+                puts("Invalid port name (must be COMxx)");
+                return 1;
+            }
+            port = port_temp;
             puts("Serial on");
             serial_on = true;
         } else if (!strcmp(script_getarg(0), "off")) {
@@ -339,7 +350,7 @@ void output_data() {
 }
 
 void serial_init() {
-    serial_start(PORT);
+    serial_start(port);
 }
 
 void process_command() {
@@ -347,7 +358,7 @@ void process_command() {
     
     uint8_t control;
     // Loop so that all available commands are processed
-    while ((control = serial_rx_byte(PORT))) {
+    while ((control = serial_rx_byte(port))) {
         switch((int)control) {
         case 0x11:
             puts("Reading frequency");
@@ -390,7 +401,7 @@ void rx_string() {
     printf("Message: \"");
     
     uint8_t c;
-    while ((c = serial_rx_byte_wait(PORT)) != 0x0) {
+    while ((c = serial_rx_byte_wait(port)) != 0x0) {
         putchar(c);
     }
     
@@ -398,13 +409,13 @@ void rx_string() {
 }
 
 void rx_freq() {
-    int32_t freq_int = serial_rx_int32(PORT);
+    int32_t freq_int = serial_rx_int32(port);
     freq = (double)freq_int / 1000;
 }
 
 void tx_confirmation() {
-    serial_tx_byte(PORT, 0xBE);
-    serial_tx_byte(PORT, 0xEF);
+    serial_tx_byte(port, 0xBE);
+    serial_tx_byte(port, 0xEF);
 }
 
 void tx_event_num() {
@@ -412,17 +423,17 @@ void tx_event_num() {
     time(&event_time);
     uint32_t event_num = (uint32_t)event_time;
     
-    serial_tx_int32(PORT, event_num);
+    serial_tx_int32(port, event_num);
 }
 
 void rx_pol_rate() {
-    pol_rate = (double)serial_rx_float(PORT);
+    pol_rate = (double)serial_rx_float(port);
 }
 
 void rx_direction() {
-    direction = serial_rx_int32(PORT);
+    direction = serial_rx_int32(port);
 }
 
 void tx_pol() {
-    serial_tx_float(PORT, (float)pol);
+    serial_tx_float(port, (float)pol);
 }

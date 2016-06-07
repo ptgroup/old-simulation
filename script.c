@@ -1,6 +1,7 @@
 #include "script.h"
 
 #include <stdio.h>
+#include <stdlib.h>
 #include <string.h>
 
 FILE *script_file;
