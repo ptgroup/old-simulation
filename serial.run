@@ -1,0 +1,4 @@
+serial on COM11
+
+freq 140.15
+time 10000

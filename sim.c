@@ -195,7 +195,7 @@ int main(int argc, char **argv) {
                 return 1;
             }
             port = port_temp;
-            puts("Serial on");
+            printf("Serial on for port %d\n", port);
             serial_on = true;
         } else if (!strcmp(script_getarg(0), "off")) {
             puts("Serial off");
